@@ -286,7 +286,7 @@ export const steps: QuizStep[] = [
     slug: 'apresentacao',
     progress: 93,
     title: 'Olá, eu sou a Gabriele',
-    subtitle: 'Cofundadora do LerBrincando. Já ajudamos centenas de famílias a alfabetizar seus filhos usando neurociência aplicada — de forma leve, em casa e em poucos dias. Agora vou pegar na sua mão. Você está pronta(o) pra começar?',
+    subtitle: 'Sou a fundadora do método LerBrincando. Já ajudei centenas de famílias a alfabetizar seus filhos aplicando neurociência no dia a dia — de forma leve, em casa e em poucos dias. Agora vou pegar na sua mão. Você está pronta(o) pra começar?',
     imageIdx: 10,
     fieldKey: 'pronta',
     options: [
@@ -312,7 +312,7 @@ export const steps: QuizStep[] = [
     slug: 'caso-dificuldade',
     progress: 97,
     title: 'Não é sorte — é método',
-    subtitle: 'O João tinha muita dificuldade, tinha até receio de tentar. Com o passo a passo certo, aos 6 anos ele finalmente leu seu primeiro livro sozinho. Você quer isso pro seu filho(a)?',
+    subtitle: 'Aos 6 anos, ele ainda não lia e tinha receio até de tentar. Com o passo a passo do método LerBrincando (criado pela Gabriele), em poucas semanas leu seu primeiro livro sozinho. Você quer isso pro seu filho(a)?',
     imageIdx: 9,
     fieldKey: 'caso_dificuldade',
     options: [
