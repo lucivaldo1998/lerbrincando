@@ -11,3 +11,4 @@ _scraper/node_modules
 prisma/dev.db*
 .vercel
 .railway
+_deploy/
