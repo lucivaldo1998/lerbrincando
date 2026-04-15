@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Order {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Customer
+  customerName  String
+  customerEmail String
+  customerPhone String
+  customerCpf   String
+  customerCity  String?
+
+  // Quiz answers (snapshot for marketing/CRM)
+  quizAnswers   Json
+
+  // Product
+  productSku    String   @default("plano-30dias")
+  productTitle  String   @default("Plano de Alfabetização 30 Dias")
+  amountCents   Int      @default(3700)
+
+  // Payment
+  paymentMethod String   // "pix" | "card"
+  status        String   @default("pending") // pending | approved | rejected | refunded | cancelled
+  mpPaymentId   String?  @unique
+  mpQrCode      String?  @db.Text
+  mpQrCodeBase64 String? @db.Text
+  mpTicketUrl   String?
+  mpRaw         Json?
+
+  // Tracking
+  utmSource     String?
+  utmCampaign   String?
+  utmMedium     String?
+  utmContent    String?
+  utmTerm       String?
+  fbclid        String?
+  ip            String?
+  userAgent     String?
+
+  events        OrderEvent[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([customerEmail])
+}
+
+model OrderEvent {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  type      String   // status_change | webhook | admin_note
+  payload   Json
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+}
+
+model Lead {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  email       String?
+  phone       String?
+  childName   String?
+  childAge    Int?
+  quizAnswers Json
+  reachedStep Int      @default(0)
+  ip          String?
+  userAgent   String?
+
+  @@index([createdAt])
+}
