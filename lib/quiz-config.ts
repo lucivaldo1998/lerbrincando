@@ -3,8 +3,16 @@
 
 export type QuizOption = { emoji?: string; label: string; value: string };
 
+// Campo opcional comum: um vídeo local (em /public/videos/*) que será renderizado
+// acima do conteúdo principal da tela. Ou imagem custom via imageSrc.
+type MediaSlot = {
+  videoSrc?: string;
+  imageSrc?: string;
+  imageIdx?: number;
+};
+
 export type QuizStep =
-  | {
+  | ({
       kind: 'choice';
       slug: string;
       progress: number; // 0-100
@@ -14,8 +22,8 @@ export type QuizStep =
       fieldKey: string;
       options: QuizOption[];
       multi?: boolean;
-    }
-  | {
+    } & MediaSlot)
+  | ({
       kind: 'info';
       slug: string;
       progress: number;
@@ -23,10 +31,9 @@ export type QuizStep =
       title: string;
       subtitle?: string;
       bullets?: string[];
-      imageIdx?: number;
       cta: string;
-    }
-  | {
+    } & MediaSlot)
+  | ({
       kind: 'diagnosis';
       slug: string;
       progress: number;
@@ -36,8 +43,8 @@ export type QuizStep =
       score: number; // 0-100 (ex: 28)
       reasons: { title: string; body: string }[];
       cta: string;
-    }
-  | {
+    } & MediaSlot)
+  | ({
       kind: 'projection';
       slug: string;
       progress: number;
@@ -47,26 +54,25 @@ export type QuizStep =
       future: number;
       options: QuizOption[];
       fieldKey: string;
-    }
-  | {
+    } & MediaSlot)
+  | ({
       kind: 'social';
       slug: string;
       progress: number;
       title: string;
       subtitle?: string;
-      imageIdx?: number;
       options: QuizOption[];
       fieldKey: string;
-    }
-  | {
+    } & MediaSlot)
+  | ({
       kind: 'loading';
       slug: string;
       progress: number;
       title: string;
       subtitle?: string;
       durationMs: number;
-    }
-  | {
+    } & MediaSlot)
+  | ({
       kind: 'plan-reveal';
       slug: string;
       progress: number;
@@ -75,13 +81,14 @@ export type QuizStep =
       weeks: { range: string; title: string }[];
       features: { emoji: string; text: string }[];
       cta: string;
-    };
+    } & MediaSlot);
 
-// Mídias capturadas (reutilizadas do acervo do cliente).
+// Mídias do acervo da marca.
 export const media = {
   hero: '/media/d17777b4-787e-4d5e-a68b-43dfc6e8592d.png',
   plan: '/media/c7876598-3dd4-47cb-80d6-f3a01b42c6a9.png',
-  gabriele: '/media/dbde0dd5-241d-486f-b92d-b337f73ebc27.png',
+  gabriele: '/media/gabi-collage.webp', // ← collage oficial da Gabriele (3 fotos)
+  paulaHarvard: '/media/paula-harvard.webp', // ← Paola Uccelli com selo Harvard
   trophy: '/media/de094bef-58ef-4fc6-b9f8-deb3771b5132.png',
   social1: '/media/129f94a0-5f85-457b-95ea-09d2fce79ce2.webp',
   social2: '/media/d625910b-2b60-41e5-920e-bfa2224ec345.webp',
@@ -95,6 +102,14 @@ export const media = {
   brain: '/media/e18c7c76-2459-463b-9391-6ac4db58fa11.png',
   feedback: '/media/238271ed-f1c6-48a4-aabb-7bf8741ec9d5.webp',
   chart: '/media/216d5881-fe2b-4f74-a00e-435598d6517d.webp',
+};
+
+// Vídeos locais em /public/videos (servidos pelo próprio Railway; sem CDN externa).
+export const videos = {
+  lendoTexto: '/videos/lendo-texto.mp4',
+  depoimentoMae: '/videos/depoimento-mae.mp4',
+  metodoPratica: '/videos/metodo-pratica.mp4',
+  demoProduto: '/videos/demo-produto.mp4',
 };
 
 export const steps: QuizStep[] = [
@@ -264,7 +279,8 @@ export const steps: QuizStep[] = [
       'Passo 5: Ler palavras mais longas com fluência',
       'Passo 6: Construir pequenas frases e pequenos textos',
     ],
-    imageIdx: 2,
+    imageSrc: media.paulaHarvard,
+    videoSrc: videos.metodoPratica,
     cta: 'Continuar',
   },
   {
@@ -287,7 +303,7 @@ export const steps: QuizStep[] = [
     progress: 93,
     title: 'Olá, eu sou a Gabriele',
     subtitle: 'Sou a fundadora do método LerBrincando. Já ajudei centenas de famílias a alfabetizar seus filhos aplicando neurociência no dia a dia — de forma leve, em casa e em poucos dias. Agora vou pegar na sua mão. Você está pronta(o) pra começar?',
-    imageIdx: 10,
+    imageSrc: media.gabriele,
     fieldKey: 'pronta',
     options: [
       { emoji: '✅', label: 'SIMMM, vamos!', value: 'sim' },
@@ -298,9 +314,9 @@ export const steps: QuizStep[] = [
     kind: 'social',
     slug: 'caso-lais',
     progress: 95,
-    title: '3 anos e já lendo sozinha',
-    subtitle: 'A Laís começou o método aos 3 anos e, em 45 dias, já lia frases curtas. Você gostaria de um resultado parecido pro seu filho(a)?',
-    imageIdx: 8,
+    title: 'Aprendendo a ler ainda pequena',
+    subtitle: 'Com o método aplicado em casa, em poucas semanas ela passou a ler palavras e frases curtas sozinha. Você gostaria desse resultado pro seu filho(a)?',
+    videoSrc: videos.lendoTexto,
     fieldKey: 'caso_lais',
     options: [
       { emoji: '✅', label: 'Com certeza!', value: 'sim' },
@@ -314,6 +330,7 @@ export const steps: QuizStep[] = [
     title: 'Não é sorte — é método',
     subtitle: 'Aos 6 anos, ele ainda não lia e tinha receio até de tentar. Com o passo a passo do método LerBrincando (criado pela Gabriele), em poucas semanas leu seu primeiro livro sozinho. Você quer isso pro seu filho(a)?',
     imageIdx: 9,
+    videoSrc: videos.depoimentoMae,
     fieldKey: 'caso_dificuldade',
     options: [
       { emoji: '✅', label: 'Com toda certeza!', value: 'sim' },
@@ -335,11 +352,28 @@ export const steps: QuizStep[] = [
   },
   {
     kind: 'loading',
-    slug: 'gerando-plano',
+    slug: 'gerando-plano-82',
     progress: 99,
     title: 'Montando o plano personalizado do seu filho(a)...',
     subtitle: 'Enquanto isso, uma mãe conta a experiência dela com o método 👇',
-    durationMs: 3500,
+    videoSrc: videos.depoimentoMae,
+    durationMs: 6000,
+  },
+  {
+    kind: 'loading',
+    slug: 'gerando-plano-97',
+    progress: 99,
+    title: 'Quase lá... ajustando cada etapa pra idade e rotina do seu filho(a)',
+    subtitle: 'Priorizando os 30 dias com base nas respostas.',
+    durationMs: 2200,
+  },
+  {
+    kind: 'loading',
+    slug: 'gerando-plano-99',
+    progress: 99,
+    title: 'Finalizando os últimos detalhes do seu plano...',
+    subtitle: '',
+    durationMs: 1500,
   },
   {
     kind: 'plan-reveal',
@@ -347,6 +381,7 @@ export const steps: QuizStep[] = [
     progress: 100,
     title: 'Seu plano personalizado de 30 dias está pronto',
     subtitle: 'Feito sob medida com base em todas as respostas. Veja a divisão:',
+    videoSrc: videos.demoProduto,
     weeks: [
       { range: 'Dias 1 – 14', title: 'Ensinando o som de cada letra (método fônico)' },
       { range: 'Dias 15 – 19', title: 'Juntando letras para formar as primeiras sílabas' },

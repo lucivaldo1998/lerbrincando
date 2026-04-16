@@ -4,13 +4,46 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { steps, type QuizStep, media, nextStepSlug } from '@/lib/quiz-config';
+
+function resolveMedia(s: any): { videoSrc?: string; imageSrc?: string } {
+  const out: { videoSrc?: string; imageSrc?: string } = {};
+  if (s.videoSrc) out.videoSrc = s.videoSrc;
+  if (s.imageSrc) out.imageSrc = s.imageSrc;
+  else if (typeof s.imageIdx === 'number') {
+    const fallback = [
+      media.kid1, media.brain, media.chart, media.social1, media.social2, media.social3, media.social4,
+      media.feedback, media.kid2, media.kid3, media.gabriele, media.trophy,
+    ];
+    out.imageSrc = fallback[s.imageIdx];
+  }
+  return out;
+}
+
+function MediaBlock({ videoSrc, imageSrc, rounded = '3xl' }: { videoSrc?: string; imageSrc?: string; rounded?: string }) {
+  if (videoSrc) {
+    return (
+      <div className={`mb-5 overflow-hidden rounded-${rounded} bg-black shadow-soft`}>
+        <video
+          src={videoSrc}
+          controls
+          playsInline
+          preload="metadata"
+          className="h-auto w-full"
+        />
+      </div>
+    );
+  }
+  if (imageSrc) {
+    return (
+      <div className={`mb-5 overflow-hidden rounded-${rounded} bg-brand-50`}>
+        <Image src={imageSrc} alt="" width={800} height={600} className="h-auto w-full" />
+      </div>
+    );
+  }
+  return null;
+}
 import { loadAnswers, saveAnswer, captureUtms } from '@/lib/answers';
 import { Progress } from './Progress';
-
-const mediaArr = [
-  media.kid1, media.brain, media.chart, media.social1, media.social2, media.social3, media.social4,
-  media.feedback, media.kid2, media.kid3, media.gabriele, media.trophy,
-];
 
 export function QuizRunner({ slug }: { slug: string }) {
   const router = useRouter();
@@ -113,16 +146,12 @@ export function QuizRunner({ slug }: { slug: string }) {
         );
 
       case 'info': {
-        const img = typeof s.imageIdx === 'number' ? mediaArr[s.imageIdx] : null;
+        const m = resolveMedia(s);
         return (
           <div>
             <h1 className="font-display text-2xl font-extrabold leading-tight text-ink">{s.title}</h1>
             {s.subtitle && <p className="mt-2 text-base text-ink/70">{s.subtitle}</p>}
-            {img && (
-              <div className="my-5 overflow-hidden rounded-2xl bg-brand-50">
-                <Image src={img} alt="" width={800} height={500} className="h-auto w-full" />
-              </div>
-            )}
+            <MediaBlock videoSrc={m.videoSrc} imageSrc={m.imageSrc} rounded="2xl" />
             {s.bullets && (
               <ul className="mt-4 space-y-2.5">
                 {s.bullets.map((b, i) => (
@@ -209,14 +238,10 @@ export function QuizRunner({ slug }: { slug: string }) {
         );
 
       case 'social': {
-        const img = typeof s.imageIdx === 'number' ? mediaArr[s.imageIdx] : null;
+        const m = resolveMedia(s);
         return (
           <div>
-            {img && (
-              <div className="mb-5 overflow-hidden rounded-3xl bg-brand-50">
-                <Image src={img} alt="" width={800} height={600} className="h-auto w-full" />
-              </div>
-            )}
+            <MediaBlock videoSrc={m.videoSrc} imageSrc={m.imageSrc} />
             <h1 className="font-display text-2xl font-extrabold leading-tight text-ink">{s.title}</h1>
             {s.subtitle && <p className="mt-2 text-base text-ink/70">{s.subtitle}</p>}
             <div className="mt-5 space-y-3">
@@ -231,27 +256,41 @@ export function QuizRunner({ slug }: { slug: string }) {
         );
       }
 
-      case 'loading':
+      case 'loading': {
+        const m = resolveMedia(s);
         return (
-          <div className="py-10 text-center">
+          <div className="py-6 text-center">
             <h1 className="font-display text-xl font-extrabold leading-tight text-ink">{s.title}</h1>
             {s.subtitle && <p className="mt-2 text-sm text-ink/70">{s.subtitle}</p>}
-            <div className="mx-auto mt-8 max-w-xs">
+            {m.videoSrc && (
+              <div className="mx-auto my-6 max-w-sm">
+                <MediaBlock videoSrc={m.videoSrc} />
+              </div>
+            )}
+            <div className="mx-auto mt-4 max-w-xs">
               <div className="progress-track">
                 <div className="progress-fill" style={{ width: `${loadingPct}%` }} />
               </div>
               <p className="mt-2 font-display text-3xl font-extrabold text-brand-600">{Math.round(loadingPct)}%</p>
             </div>
-            <div className="mx-auto mt-8 grid h-16 w-16 animate-pulse-soft place-items-center rounded-full bg-brand-100 text-3xl">📚</div>
+            {!m.videoSrc && (
+              <div className="mx-auto mt-8 grid h-16 w-16 animate-pulse-soft place-items-center rounded-full bg-brand-100 text-3xl">📚</div>
+            )}
           </div>
         );
+      }
 
-      case 'plan-reveal':
+      case 'plan-reveal': {
+        const m = resolveMedia(s);
         return (
           <div>
-            <div className="mb-5 overflow-hidden rounded-3xl bg-brand-50">
-              <Image src={media.plan} alt="Plano personalizado" width={800} height={500} className="h-auto w-full" />
-            </div>
+            {m.videoSrc ? (
+              <MediaBlock videoSrc={m.videoSrc} />
+            ) : (
+              <div className="mb-5 overflow-hidden rounded-3xl bg-brand-50">
+                <Image src={media.plan} alt="Plano personalizado" width={800} height={500} className="h-auto w-full" />
+              </div>
+            )}
             <h1 className="font-display text-2xl font-extrabold leading-tight text-ink">{s.title}</h1>
             {s.subtitle && <p className="mt-2 text-base text-ink/70">{s.subtitle}</p>}
             <div className="mt-5 space-y-2">
@@ -275,6 +314,7 @@ export function QuizRunner({ slug }: { slug: string }) {
             </button>
           </div>
         );
+      }
     }
   }
 }
